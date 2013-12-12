@@ -1,0 +1,38 @@
+{
+  "name": "rpi-ws2801",
+  "version": "0.0.1",
+  "description": "A node.js library to control a WS2801 RGB LED stripe via SPI with your Raspberry Pi",
+  "main": "rpi-ws2801.js",  
+  "dependencies" : {
+    "fs"        :  "*",
+    "microtime" :  "*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jorgen-VikingGod/node-rpi-ws2801.git"
+  },
+  "keywords": [
+    "raspberry",
+    "pi",
+    "raspi",
+    "rpi",
+    "leddriver",
+    "led",
+    "rgb",
+    "WS2801",
+    "spi",
+    "pwm"
+  ],
+  "author": {
+    "name": "Jürgen Skrotzky"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jorgen-VikingGod/node-rpi-ws2801/issues"
+  },  
+  "homepage": "https://github.com/Jorgen-VikingGod/node-rpi-ws2801"
+}
