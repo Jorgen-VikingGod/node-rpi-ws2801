@@ -11,6 +11,8 @@ This should also work with other SPI devices.
 npm install node-rpi-ws2801
 ```
 
+Module is registered to npm as [rpi-ws2801](https://npmjs.org/package/rpi-ws2801)
+
 ### initialization
 ```js
 var leds = require("rpi-ws2801");
