@@ -1,5 +1,5 @@
-node-rpi-ws2801
-===============
+rpi-ws2801
+==========
 
 This is a **node.js** library to control a **WS2801** RGB LED stripe via **SPI** with your **Raspberry Pi**.
 
@@ -8,7 +8,7 @@ This should also work with other SPI devices.
 
 ### installation
 ```sh
-npm install node-rpi-ws2801
+npm install rpi-ws2801
 ```
 
 Module is registered to npm as [rpi-ws2801](https://npmjs.org/package/rpi-ws2801)
