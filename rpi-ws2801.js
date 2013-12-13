@@ -8,32 +8,32 @@ var microtime = require('microtime');
 
 function RPiWS2801(){
   this.spiDevice = '/dev/spidev0.0';
-	this.numLEDs = 32;
-	this.spiFd = null; //filedescriptor for spidevice
+  this.numLEDs = 32;
+  this.spiFd = null; //filedescriptor for spidevice
   this.inverted = false;
   this.reversed = false;	
-	this.gamma = 2.5;
-	this.redIndex = 0;
-	this.greenIndex = 1;
-	this.blueIndex = 2;
-	this.gammatable = new Array(256);
-	this.bytePerPixel = 3; //RGB
-	this.channelCount = this.numLEDs*this.bytePerPixel;
+  this.gamma = 2.5;
+  this.redIndex = 0;
+  this.greenIndex = 1;
+  this.blueIndex = 2;
+  this.gammatable = new Array(256);
+  this.bytePerPixel = 3; //RGB
+  this.channelCount = this.numLEDs*this.bytePerPixel;
   this.values = new Buffer(this.channelCount);
-	this.rowResetTime = 1000; // number of us CLK has to be pulled low (=no writes) for frame reset
+  this.rowResetTime = 1000; // number of us CLK has to be pulled low (=no writes) for frame reset
     						            // manual of WS2801 says 500 is enough, however we need at least 1000
   this.lastWriteTime = microtime.now()-this.rowResetTime-1; //last time something was written to SPI
     												                                //required for save WS2801 reset	
   // clear buffer    												                                
-	for( var i = 0; i < this.channelCount; i++) {
+  for( var i = 0; i < this.channelCount; i++) {
     this.values[i] = 0;
   }
 }
 
 RPiWS2801.prototype = {
   /*
-	 * connect to SPI port
-	 */
+   * connect to SPI port
+   */
   connect: function(numLEDs, spiDevice, gamma){
     // sanity check for params
     if ((numLEDs !== parseInt(numLEDs)) || (numLEDs<1)) {
@@ -43,19 +43,19 @@ RPiWS2801.prototype = {
     if (spiDevice){
       this.spiDevice = spiDevice;
     }
-		// connect synchronously
-		try{
-			this.spiFd = fs.openSync(this.spiDevice, 'w');
-		} catch (err) {
-			console.error("error opening SPI device "+this.spiDevice, err);
-			return false;
-		}
-		this.numLEDs = numLEDs;
-		this.gamma = gamma ? gamma : 2.5; //set gamma correction value
-		// compute gamma correction table
-		for (var i=0; i<256; i++)
-			this.gammatable[i] = Math.round(255*Math.pow(i/255, this.gamma));
-		//console.log("gammatable" + this.gammatable);
+    // connect synchronously
+    try{
+      this.spiFd = fs.openSync(this.spiDevice, 'w');
+    } catch (err) {
+      console.error("error opening SPI device "+this.spiDevice, err);
+      return false;
+    }
+    this.numLEDs = numLEDs;
+    this.gamma = gamma ? gamma : 2.5; //set gamma correction value
+    // compute gamma correction table
+    for (var i=0; i<256; i++)
+      this.gammatable[i] = Math.round(255*Math.pow(i/255, this.gamma));
+    //console.log("gammatable" + this.gammatable);
   },
 
   /*
@@ -112,10 +112,10 @@ RPiWS2801.prototype = {
     if (microtime.now() > (this.lastWriteTime + this.rowResetTime)){
       // yes, its o.k., lets write
       // but first do gamma correction
-		  var adjustedBuffer = new Buffer(buffer.length);
-		  for (var i=0; i < buffer.length; i++){
-		    adjustedBuffer[i]=this.gammatable[buffer[i]];
-		  }
+      var adjustedBuffer = new Buffer(buffer.length);
+      for (var i=0; i < buffer.length; i++){
+        adjustedBuffer[i]=this.gammatable[buffer[i]];
+      }
       fs.writeSync(this.spiFd, adjustedBuffer, 0, buffer.length, null);
       this.lastWriteTime = microtime.now();
       return true;
@@ -124,10 +124,9 @@ RPiWS2801.prototype = {
     return false;	
   }, // end sendRgbBuffer
 
-
   /*
-	 * fill whole stripe with one color
-	 */
+   * fill whole stripe with one color
+   */
   fill: function(r,g,b){
     if (this.spiFd) {      
       var colors = this.getRGBArray(r,g,b);
@@ -135,15 +134,15 @@ RPiWS2801.prototype = {
       for (var i=0; i<(this.channelCount); i+=3){
         colorBuffer[i+0]=colors[0];
         colorBuffer[i+1]=colors[1];
-			 	colorBuffer[i+2]=colors[2];
-			}
-			this.sendRgbBuffer(colorBuffer);
-		}    	
+  	colorBuffer[i+2]=colors[2];
+      }
+      this.sendRgbBuffer(colorBuffer);
+    }    	
   }, //end fill
 
   /*
-	 * set color of led index [red, green, blue] from 0 to 255
-	 */  
+   * set color of led index [red, green, blue] from 0 to 255
+   */  
   setColor: function(ledIndex, color) {
     if (this.spiFd) {
       var colors = this.getRGBArray(color[0],color[1],color[2]);
@@ -159,8 +158,8 @@ RPiWS2801.prototype = {
   },
 
   /*
-	 * set power of channel from 0 to 1
-	 */  
+   * set power of channel from 0 to 1
+   */  
   setChannelPower: function(channelIndex, powerValue) {
     if (this.spiFd) {  
       if(channelIndex > this.channelCount || channelIndex < 0) {
@@ -175,8 +174,8 @@ RPiWS2801.prototype = {
   }, // end setChannelPower
         
   /*
-	 * set RGB hexcolor to LED index
-	 */  
+   * set RGB hexcolor to LED index
+   */  
   setRGB: function(ledIndex, hexColor) {
     if (this.spiFd) {
       var rgb = this.getRGBfromHex(hexColor);
@@ -218,16 +217,16 @@ RPiWS2801.prototype = {
   },
   
   getRGBArray: function(r, g, b){
-      var colorArray = new Array(3);
-      colorArray[this.redIndex] = r;
-      colorArray[this.greenIndex] = g;
-      colorArray[this.blueIndex] = b;
-      if(this.inverted) {
-        colorArray[0] = (1 - colorArray[0]/255)*255;
-        colorArray[1] = (1 - colorArray[1]/255)*255;
-        colorArray[2] = (1 - colorArray[2]/255)*255;
-      }      
-      return colorArray;
+    var colorArray = new Array(3);
+    colorArray[this.redIndex] = r;
+    colorArray[this.greenIndex] = g;
+    colorArray[this.blueIndex] = b;
+    if(this.inverted) {
+      colorArray[0] = (1 - colorArray[0]/255)*255;
+      colorArray[1] = (1 - colorArray[1]/255)*255;
+      colorArray[2] = (1 - colorArray[2]/255)*255;
+    }      
+    return colorArray;
   },
 
   getRGBfromHex: function(color) {
