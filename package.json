@@ -1,6 +1,6 @@
 {
   "name": "rpi-ws2801",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A node.js library to control a WS2801 RGB LED stripe via SPI with your Raspberry Pi",
   "main": "rpi-ws2801.js",
   "dependencies": {
