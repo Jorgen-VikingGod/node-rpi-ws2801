@@ -51,6 +51,7 @@ RPiWS2801.prototype = {
       return false;
     }
     this.numLEDs = numLEDs;
+    this.channelCount = this.numLEDs*this.bytePerPixel;
     this.gamma = gamma ? gamma : 2.5; //set gamma correction value
     // compute gamma correction table
     for (var i=0; i<256; i++)
