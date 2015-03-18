@@ -120,7 +120,7 @@ RPiWS2801.prototype = {
       this.lastWriteTime = microtime.now();
       return true;
     }
-    console.log('writing to fast, data dropped');
+    console.log('writing too fast, data dropped');
     return false;	
   }, // end sendRgbBuffer
 
