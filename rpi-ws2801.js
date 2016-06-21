@@ -37,8 +37,7 @@ RPiWS2801.prototype = {
   connect: function(numLEDs, spiDevice, gamma){
     // sanity check for params
     if ((numLEDs !== parseInt(numLEDs)) || (numLEDs<1)) {
-      console.error("invalid param for number of LEDs, plz use integer >0");
-      return false;
+      throw new Error("Invalid param for number of LEDs, plz use integer >0");
     }
     if (spiDevice){
       this.spiDevice = spiDevice;
@@ -47,8 +46,7 @@ RPiWS2801.prototype = {
     try{
       this.spiFd = fs.openSync(this.spiDevice, 'w');
     } catch (err) {
-      console.error("error opening SPI device "+this.spiDevice, err);
-      return false;
+      throw new Error("Error opening SPI device " + this.spiDevice + err);
     }
     this.numLEDs = numLEDs;
 
@@ -60,7 +58,6 @@ RPiWS2801.prototype = {
     // compute gamma correction table
     for (var i=0; i<256; i++)
       this.gammatable[i] = Math.round(255*Math.pow(i/255, this.gamma));
-    //console.log("gammatable" + this.gammatable);
   },
 
   /*
@@ -113,6 +110,7 @@ RPiWS2801.prototype = {
    * send buffer with RGB values to WS2801 stripe
    */
   sendRgbBuffer : function(buffer){
+    var bytesWritten = 0;
     // checking if enough time passed for resetting stripe
     if (microtime.now() > (this.lastWriteTime + this.rowResetTime)){
       // yes, its o.k., lets write
@@ -121,12 +119,10 @@ RPiWS2801.prototype = {
       for (var i=0; i < buffer.length; i++){
         adjustedBuffer[i]=this.gammatable[buffer[i]];
       }
-      fs.writeSync(this.spiFd, adjustedBuffer, 0, buffer.length, null);
+      bytesWritten = fs.writeSync(this.spiFd, adjustedBuffer, 0, buffer.length, null);
       this.lastWriteTime = microtime.now();
-      return true;
     }
-    console.log('writing too fast, data dropped');
-    return false;	
+    return bytesWritten;	
   }, // end sendRgbBuffer
 
   /*
