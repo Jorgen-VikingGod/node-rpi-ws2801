@@ -25,9 +25,7 @@ function RPiWS2801(){
   this.lastWriteTime = microtime.now()-this.rowResetTime-1; //last time something was written to SPI
     												                                //required for save WS2801 reset	
   // clear buffer    												                                
-  for( var i = 0; i < this.channelCount; i++) {
-    this.values[i] = 0;
-  }
+  this.values.fill(0);
 }
 
 RPiWS2801.prototype = {
@@ -55,6 +53,7 @@ RPiWS2801.prototype = {
     this.channelCount = this.numLEDs*this.bytePerPixel;
 
     this.values = new Buffer(this.channelCount);
+    this.values.fill(0);
 
     this.gamma = gamma ? gamma : 2.5; //set gamma correction value
     // compute gamma correction table
