@@ -4,7 +4,8 @@
   "description": "A node.js library to control a WS2801 RGB LED stripe via SPI with your Raspberry Pi",
   "main": "rpi-ws2801.js",
   "dependencies": {
-    "microtime": "*"
+    "microtime": "*",
+    "spi":"*"
   },
   "devDependencies": {},
   "scripts": {
