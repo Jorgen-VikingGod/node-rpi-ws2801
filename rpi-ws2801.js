@@ -1,5 +1,5 @@
-var fs        = require('fs');
 var microtime = require('microtime');
+var SPI       = require('spi-device');
 
 /*
  A node.js library to control a WS2801 RGB LED stripe via SPI with your Raspberry Pi
@@ -7,9 +7,10 @@ var microtime = require('microtime');
 */
 
 function RPiWS2801(){
-  this.spiDevice = '/dev/spidev0.0';
+  this.spiBus = 0;
+  this.spiDevice = 0;
   this.numLEDs = 32;
-  this.spiFd = null; //filedescriptor for spidevice
+  this.spi = null; 
   this.inverted = false;
   this.reversed = false;	
   this.gamma = 2.5;
@@ -24,6 +25,8 @@ function RPiWS2801(){
     						            // manual of WS2801 says 500 is enough, however we need at least 1000
   this.lastWriteTime = microtime.now()-this.rowResetTime-1; //last time something was written to SPI
     												                                //required for save WS2801 reset	
+  // SPI max speed
+  this.maxSpeed = 1000000;
   // clear buffer    												                                
   this.values.fill(0);
 }
@@ -32,22 +35,26 @@ RPiWS2801.prototype = {
   /*
    * connect to SPI port
    */
-  connect: function(numLEDs, spiDevice, gamma){
+  connect: function(numLEDs, spiBus, spiDevice, gamma){
     // sanity check for params
     if ((numLEDs !== parseInt(numLEDs)) || (numLEDs<1)) {
       console.error("invalid param for number of LEDs, plz use integer >0");
       return false;
     }
-    if (spiDevice){
+    if (spiBus){
+      this.spiBus = spiBus;
+    }
+	if (spiDevice){
       this.spiDevice = spiDevice;
     }
-    // connect synchronously
+    
     try{
-      this.spiFd = fs.openSync(this.spiDevice, 'w');
+      this.spi = SPI.openSync(this.spiBus, this.spiDevice, {'maxSpeed' : this.maxSpeed});
     } catch (err) {
       console.error("error opening SPI device "+this.spiDevice, err);
       return false;
     }
+        
     this.numLEDs = numLEDs;
 
     this.channelCount = this.numLEDs*this.bytePerPixel;
@@ -66,14 +73,14 @@ RPiWS2801.prototype = {
    * disconnect from SPI port
    */
   disconnect : function(){
-    if (this.spiFd) fs.closeSync(this.spiFd);
+    if (this.spi) this.spi.closeSync();
   },
 
   /*
    * send stored buffer with RGB values to WS2801 stripe
    */
   update: function(){
-    if (this.spiFd) {
+    if (this.spi) {
       this.sendRgbBuffer(this.values);
     }  
   },
@@ -120,7 +127,16 @@ RPiWS2801.prototype = {
       for (var i=0; i < buffer.length; i++){
         adjustedBuffer[i]=this.gammatable[buffer[i]];
       }
-      fs.writeSync(this.spiFd, adjustedBuffer, 0, buffer.length, null);
+	  
+	  
+	  let message = [{
+		sendBuffer: adjustedBuffer,
+		byteLength: adjustedBuffer.length,
+		speedHz: this.maxSpeed
+	  }];
+
+      this.spi.transferSync(message);
+      
       this.lastWriteTime = microtime.now();
       return true;
     }
@@ -132,13 +148,13 @@ RPiWS2801.prototype = {
    * fill whole stripe with one color
    */
   fill: function(r,g,b){
-    if (this.spiFd) {      
+    if (this.spi) {      
       var colors = this.getRGBArray(r,g,b);
       var colorBuffer = new Buffer(this.channelCount);
       for (var i=0; i<(this.channelCount); i+=3){
         colorBuffer[i+0]=colors[0];
         colorBuffer[i+1]=colors[1];
-  	colorBuffer[i+2]=colors[2];
+        colorBuffer[i+2]=colors[2];
       }
       this.sendRgbBuffer(colorBuffer);
     }    	
@@ -148,7 +164,7 @@ RPiWS2801.prototype = {
    * set color of led index [red, green, blue] from 0 to 255
    */  
   setColor: function(ledIndex, color) {
-    if (this.spiFd) {
+    if (this.spi) {
       var colors = this.getRGBArray(color[0],color[1],color[2]);
       var r, g, b;
       r = colors[0] / 255;
@@ -165,7 +181,7 @@ RPiWS2801.prototype = {
    * set power of channel from 0 to 1
    */  
   setChannelPower: function(channelIndex, powerValue) {
-    if (this.spiFd) {  
+    if (this.spi) {  
       if(channelIndex > this.channelCount || channelIndex < 0) {
         return false;
       }
@@ -181,7 +197,7 @@ RPiWS2801.prototype = {
    * set RGB hexcolor to LED index
    */  
   setRGB: function(ledIndex, hexColor) {
-    if (this.spiFd) {
+    if (this.spi) {
       var rgb = this.getRGBfromHex(hexColor);
       var colors = this.getRGBArray(rgb.r,rgb.g,rgb.b);
       var redChannel = this.getRedChannelIndex(ledIndex);
@@ -222,9 +238,9 @@ RPiWS2801.prototype = {
   
   getRGBArray: function(r, g, b){
     var colorArray = new Array(3);
-    colorArray[this.redIndex] = r;
-    colorArray[this.greenIndex] = g;
-    colorArray[this.blueIndex] = b;
+    colorArray[this.redIndex] = r & 0xff;
+    colorArray[this.greenIndex] = g & 0xff;
+    colorArray[this.blueIndex] = b & 0xff;
     if(this.inverted) {
       colorArray[0] = (1 - colorArray[0]/255)*255;
       colorArray[1] = (1 - colorArray[1]/255)*255;
