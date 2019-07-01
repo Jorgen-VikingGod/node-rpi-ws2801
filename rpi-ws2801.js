@@ -1,5 +1,5 @@
 var microtime = require('microtime');
-var SPI       = require('spi');
+var SPI       = require('spi-device');
 
 /*
  A node.js library to control a WS2801 RGB LED stripe via SPI with your Raspberry Pi
@@ -7,7 +7,8 @@ var SPI       = require('spi');
 */
 
 function RPiWS2801(){
-  this.spiDevice = '/dev/spidev0.0';
+  this.spiBus = 0;
+  this.spiDevice = 0;
   this.numLEDs = 32;
   this.spi = null; 
   this.inverted = false;
@@ -34,20 +35,21 @@ RPiWS2801.prototype = {
   /*
    * connect to SPI port
    */
-  connect: function(numLEDs, spiDevice, gamma){
+  connect: function(numLEDs, spiBus, spiDevice, gamma){
     // sanity check for params
     if ((numLEDs !== parseInt(numLEDs)) || (numLEDs<1)) {
       console.error("invalid param for number of LEDs, plz use integer >0");
       return false;
     }
-    if (spiDevice){
+    if (spiBus){
+      this.spiBus = spiBus;
+    }
+	if (spiDevice){
       this.spiDevice = spiDevice;
     }
     
     try{
-      this.spi = new SPI.Spi(this.spiDevice, {'maxSpeed' : this.maxSpeed}, function(s){
-          s.open();
-        });
+      this.spi = SPI.openSync(this.spiBus, this.spiDevice, {'maxSpeed' : this.maxSpeed});
     } catch (err) {
       console.error("error opening SPI device "+this.spiDevice, err);
       return false;
@@ -71,7 +73,7 @@ RPiWS2801.prototype = {
    * disconnect from SPI port
    */
   disconnect : function(){
-    if (this.spi) this.spi.close();
+    if (this.spi) this.spi.closeSync();
   },
 
   /*
@@ -125,8 +127,14 @@ RPiWS2801.prototype = {
       for (var i=0; i < buffer.length; i++){
         adjustedBuffer[i]=this.gammatable[buffer[i]];
       }
+	  
+	  
+	  let message = [{
+		sendBuffer: adjustedBuffer,
+		byteLength: adjustedBuffer.length
+	  }];
 
-      this.spi.write(adjustedBuffer);
+      this.spi.transferSync(message);
       
       this.lastWriteTime = microtime.now();
       return true;

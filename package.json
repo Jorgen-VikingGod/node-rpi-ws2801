@@ -5,7 +5,7 @@
   "main": "rpi-ws2801.js",
   "dependencies": {
     "microtime": "*",
-    "spi":"*"
+    "spi-device": "^2.0.8"
   },
   "devDependencies": {},
   "scripts": {

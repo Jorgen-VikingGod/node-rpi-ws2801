@@ -1,4 +1,4 @@
-var leds = require('rpi-ws2801');
+var leds = require('./rpi-ws2801');
 
 // connecting to Raspberry Pi SPI
 leds.connect(32); // assign number of WS2801 LEDs
