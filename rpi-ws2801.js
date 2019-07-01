@@ -132,7 +132,7 @@ RPiWS2801.prototype = {
 	  let message = [{
 		sendBuffer: adjustedBuffer,
 		byteLength: adjustedBuffer.length,
-		speedHz: 1000000
+		speedHz: this.maxSpeed
 	  }];
 
       this.spi.transferSync(message);
