@@ -26,7 +26,7 @@ function RPiWS2801(){
   this.lastWriteTime = microtime.now()-this.rowResetTime-1; //last time something was written to SPI
     												                                //required for save WS2801 reset	
   // SPI max speed
-  this.maxSpeed = 1000000;
+  this.maxSpeedHz = 1000000;
   // clear buffer    												                                
   this.values.fill(0);
 }
@@ -49,7 +49,7 @@ RPiWS2801.prototype = {
     }
     
     try{
-      this.spi = SPI.openSync(this.spiBus, this.spiDevice, {'maxSpeed' : this.maxSpeed});
+      this.spi = SPI.openSync(this.spiBus, this.spiDevice, {'maxSpeedHz' : this.maxSpeedHz});
     } catch (err) {
       console.error("error opening SPI device "+this.spiDevice, err);
       return false;
@@ -132,7 +132,7 @@ RPiWS2801.prototype = {
 	  let message = [{
 		sendBuffer: adjustedBuffer,
 		byteLength: adjustedBuffer.length,
-		speedHz: this.maxSpeed
+		//speedHz: this.maxSpeedHz
 	  }];
 
       this.spi.transferSync(message);
