@@ -20,7 +20,7 @@ function RPiWS2801(){
   this.gammatable = new Array(256);
   this.bytePerPixel = 3; //RGB
   this.channelCount = this.numLEDs*this.bytePerPixel;
-  this.values = new Buffer(this.channelCount);
+  this.values = Buffer.alloc(this.channelCount);
   this.rowResetTime = 1000; // number of us CLK has to be pulled low (=no writes) for frame reset
     						            // manual of WS2801 says 500 is enough, however we need at least 1000
   this.lastWriteTime = microtime.now()-this.rowResetTime-1; //last time something was written to SPI
@@ -59,7 +59,7 @@ RPiWS2801.prototype = {
 
     this.channelCount = this.numLEDs*this.bytePerPixel;
 
-    this.values = new Buffer(this.channelCount);
+    this.values = Buffer.alloc(this.channelCount);
     this.values.fill(0);
 
     this.gamma = gamma ? gamma : 2.5; //set gamma correction value
@@ -123,7 +123,7 @@ RPiWS2801.prototype = {
     if (microtime.now() > (this.lastWriteTime + this.rowResetTime)){
       // yes, its o.k., lets write
       // but first do gamma correction
-      var adjustedBuffer = new Buffer(buffer.length);
+      var adjustedBuffer = Buffer.alloc(buffer.length);
       for (var i=0; i < buffer.length; i++){
         adjustedBuffer[i]=this.gammatable[buffer[i]];
       }
@@ -150,7 +150,7 @@ RPiWS2801.prototype = {
   fill: function(r,g,b){
     if (this.spi) {      
       var colors = this.getRGBArray(r,g,b);
-      var colorBuffer = new Buffer(this.channelCount);
+      var colorBuffer = Buffer.alloc(this.channelCount);
       for (var i=0; i<(this.channelCount); i+=3){
         colorBuffer[i+0]=colors[0];
         colorBuffer[i+1]=colors[1];
