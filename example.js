@@ -45,7 +45,7 @@ setTimeout(randomAnimation, 4000);
 function randomAnimation(){
   console.log("-- random color animation --");
   console.log("press (Ctrl-C) to stop");  
-  var colorBuffer = new Buffer(leds.getChannelCount());
+  var colorBuffer = Buffer.alloc(leds.getChannelCount());
   var animationTick = 0.005;
   var angle = 0;
   var ledDistance = 0.3;
